@@ -1,0 +1,90 @@
+# Basically copied from 
+# https://github.com/StanfordSNR/observatory/blob/master/src/scripts/experiments.yml.
+# Modified a bit for our purposes.
+
+meta:
+  branch: master
+  base_dir: {src_dir}
+  test_path: {src_dir}/_build/deps/pantheon/src/experiments/test.py
+  data_base_dir: {src_dir}/data
+  tmp_dir: {src_dir}/tmp
+  install_deps_path: {pantheon_root}/tools/install_deps.sh
+  pkill_path: {pantheon_root}/tools/pkill.py
+  setup_system_path: {pantheon_root}/src/experiments/setup_system.py
+  setup_path: {pantheon_root}/src/experiments/setup.py
+  analyze_path: {pantheon_root}/src/analysis/analyze.py
+  traces_dir: {src_dir}/train/traces
+
+emu:
+  macros:
+    common_param_set: >-
+      local --data-dir {data_dir} --pkill-cleanup
+  jobs:
+    ##########################################################################################
+    - scenario: 0
+      desc: >-
+        A training scenario
+      params:
+        flows: 1
+        bandwidth: 0.57
+        queue: {{1, 3}}
+        loss_ratio: {{0.0006, 0.06, 0.12}}
+        delay: {{5, 10, 30, 50, 80}}
+      command: >-
+        {test_path} {common_param_set} --runtime 30 -f {flows}
+        --uplink-trace {traces_dir}/{bandwidth}mbps-poisson.trace
+        --downlink-trace {traces_dir}/{bandwidth}mbps-poisson.trace
+        --prepend-mm-cmds "mm-delay {delay}"
+        --extra-mm-link-args "--uplink-queue=droptail --uplink-queue-args=packets={queue}"
+        --append-mm-cmds "mm-loss uplink {loss_ratio}"
+    ##########################################################################################
+    - scenario: 0
+      desc: >-
+        A training scenario
+      params:
+        flows: 1
+        bandwidth: 3.04
+        queue: {{6, 15}}
+        loss_ratio: {{0.0006, 0.06, 0.12}}
+        delay: {{5, 10, 30, 50, 80}}
+      command: >-
+        {test_path} {common_param_set} --runtime 30 -f {flows}
+        --uplink-trace {traces_dir}/{bandwidth}mbps-poisson.trace
+        --downlink-trace {traces_dir}/{bandwidth}mbps-poisson.trace
+        --prepend-mm-cmds "mm-delay {delay}"
+        --extra-mm-link-args "--uplink-queue=droptail --uplink-queue-args=packets={queue}"
+        --append-mm-cmds "mm-loss uplink {loss_ratio}"
+    ##########################################################################################
+    - scenario: 0
+      desc: >-
+        A training scenario
+      params:
+        flows: {{1, 2}}
+        bandwidth: 12
+        queue: {{24, 60}}
+        loss_ratio: {{0.0006, 0.06, 0.12}}
+        delay: {{5, 10, 30, 50, 80}}
+      command: >-
+        {test_path} {common_param_set} --runtime 30 -f {flows}
+        --uplink-trace {traces_dir}/{bandwidth}mbps.trace
+        --downlink-trace {traces_dir}/{bandwidth}mbps.trace
+        --prepend-mm-cmds "mm-delay {delay}"
+        --extra-mm-link-args "--uplink-queue=droptail --uplink-queue-args=packets={queue}"
+        --append-mm-cmds "mm-loss uplink {loss_ratio}"
+    ##########################################################################################
+    - scenario: 0
+      desc: >-
+        A training scenario
+      params:
+        flows: {{1, 2}}
+        bandwidth: 50
+        queue: {{100, 250}}
+        loss_ratio: {{0.0006, 0.06, 0.12}}
+        delay: {{5, 10, 30, 50, 80}}
+      command: >-
+        {test_path} {common_param_set} --runtime 30 -f {flows}
+        --uplink-trace {traces_dir}/{bandwidth}mbps.trace
+        --downlink-trace {traces_dir}/{bandwidth}mbps.trace
+        --prepend-mm-cmds "mm-delay {delay}"
+        --extra-mm-link-args "--uplink-queue=droptail --uplink-queue-args=packets={queue}"
+        --append-mm-cmds "mm-loss uplink {loss_ratio}"

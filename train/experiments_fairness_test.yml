@@ -1,0 +1,55 @@
+# Basically copied from 
+# https://github.com/StanfordSNR/observatory/blob/master/src/scripts/experiments.yml.
+# Modified a bit for our purposes.
+
+meta:
+  branch: master
+  base_dir: {src_dir}
+  test_path: {src_dir}/_build/deps/pantheon/src/experiments/test.py
+  data_base_dir: {src_dir}/data
+  tmp_dir: {src_dir}/tmp
+  install_deps_path: {pantheon_root}/tools/install_deps.sh
+  pkill_path: {pantheon_root}/tools/pkill.py
+  setup_system_path: {pantheon_root}/src/experiments/setup_system.py
+  setup_path: {pantheon_root}/src/experiments/setup.py
+  analyze_path: {pantheon_root}/src/analysis/analyze.py
+  traces_dir: {src_dir}/train/traces
+
+emu:
+  macros:
+    common_param_set: >-
+      local --data-dir {data_dir} --pkill-cleanup
+  jobs:
+    ##########################################################################################
+    - scenario: 1
+      desc: >-
+        A test scenario
+      params:
+        flows: {{1, 2, 3, 4}}
+        bandwidth: {{12, 77.72}}
+        queue: 94
+        loss_ratio: {{0.0006, 0.06}}
+        delay: {{5, 10, 20, 40, 70}}
+      command: >-
+        {test_path} {common_param_set} --runtime 30 -f {flows}
+        --uplink-trace {traces_dir}/{bandwidth}mbps.trace
+        --downlink-trace {traces_dir}/{bandwidth}mbps.trace
+        --prepend-mm-cmds "mm-delay {delay}"
+        --extra-mm-link-args "--uplink-queue=droptail --uplink-queue-args=packets={queue}"
+        --append-mm-cmds "mm-loss uplink {loss_ratio}"
+    ##########################################################################################
+    - scenario: 2
+      performance:
+        flows: 1
+        bandwidth: {{12, 77.72}}
+        queue: 94
+        loss_ratio: {{0.0006, 0.06}}
+        delay: {{5, 70}}
+      command: >-
+        {test_path} {common_param_set} --runtime 60 --interval 5
+        --flow-schemes "mvfst_rl bbr cubic"
+        --uplink-trace {traces_dir}/{bandwidth}mbps.trace
+        --downlink-trace {traces_dir}/{bandwidth}mbps.trace
+        --prepend-mm-cmds "mm-delay {delay}"
+        --extra-mm-link-args "--uplink-queue=droptail --uplink-queue-args=packets={queue}"
+        --append-mm-cmds "mm-loss uplink {loss_ratio}"
